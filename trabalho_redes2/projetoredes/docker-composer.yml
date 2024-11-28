@@ -1,0 +1,170 @@
+version: "3.7"
+
+services:
+  # Proxy reverso (Nginx)
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - app_network
+    ports:
+      - "8080:80" # Proxy para as aplicações
+    depends_on:
+      - app1
+      - app2
+      - app3
+
+  # Aplicação 1
+  app1:
+    build: ./app1
+    container_name: app1
+    networks:
+      - app_network
+    expose:
+      - "80"
+    ports:
+      - "5000:80"  # Porta para o proxy reverso
+    environment:
+      DB_HOST: db1
+      DB_PORT: 3306
+      DB_USER: app1_user
+      DB_PASSWORD: app1_password
+
+  # Banco de dados 1
+  db1:
+    image: mysql:5.7
+    container_name: db1
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app1_db
+      MYSQL_USER: app1_user
+      MYSQL_PASSWORD: app1_password
+    volumes:
+      - db1_data:/var/lib/mysql
+    networks:
+      - db1_network
+
+  db1_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: db1_phpmyadmin
+    environment:
+      PMA_HOST: db1
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    networks:
+      - db1_network
+    ports:
+      - "8081:80"
+
+  # Aplicação 2
+  app2:
+    build: ./app2
+    container_name: app2
+    networks:
+      - app_network
+    expose:
+      - "80"
+    ports:
+      - "5001:80"  # Porta para o proxy reverso
+    environment:
+      DB_HOST: db2
+      DB_PORT: 3306
+      DB_USER: app2_user
+      DB_PASSWORD: app2_password
+
+  # Banco de dados 2
+  db2:
+    image: mysql:5.7
+    container_name: db2
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app2_db
+      MYSQL_USER: app2_user
+      MYSQL_PASSWORD: app2_password
+    volumes:
+      - db2_data:/var/lib/mysql
+    networks:
+      - db2_network
+
+  db2_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: db2_phpmyadmin
+    environment:
+      PMA_HOST: db2
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    networks:
+      - db2_network
+    ports:
+      - "8082:80"
+
+  # Aplicação 3
+  app3:
+    build: ./app3
+    container_name: app3
+    networks:
+      - app_network
+    expose:
+      - "80"
+    ports:
+      - "5002:80"  # Porta para o proxy reverso
+    environment:
+      DB_HOST: db3
+      DB_PORT: 3306
+      DB_USER: app3_user
+      DB_PASSWORD: app3_password
+
+  # Banco de dados 3
+  db3:
+    image: mysql:5.7
+    container_name: db3
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: app3_db
+      MYSQL_USER: app3_user
+      MYSQL_PASSWORD: app3_password
+    volumes:
+      - db3_data:/var/lib/mysql
+    networks:
+      - db3_network
+
+  db3_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: db3_phpmyadmin
+    environment:
+      PMA_HOST: db3
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    networks:
+      - db3_network
+    ports:
+      - "8083:80"
+
+volumes:
+  db1_data:
+  db2_data:
+  db3_data:
+
+networks:
+  db1_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.10.0/28
+  db2_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.10.16/28
+  db3_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.10.32/28
+  app_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.10.48/28
